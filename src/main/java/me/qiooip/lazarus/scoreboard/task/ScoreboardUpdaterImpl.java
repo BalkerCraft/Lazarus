@@ -123,8 +123,8 @@ public class ScoreboardUpdaterImpl implements ScoreboardUpdater {
 
         if(Config.KITMAP_MODE_ENABLED) {
             scoreboard.add(Config.KITMAP_STATS_TITLE_PLACEHOLDER, "");
-            scoreboard.add(Config.KITMAP_STATS_KILLS_PLACEHOLDER, userdata.getKills() + "");
-            scoreboard.add(Config.KITMAP_STATS_DEATHS_PLACEHOLDER, userdata.getDeaths() + "");
+            scoreboard.add(Config.KITMAP_STATS_KILLS_PLACEHOLDER, ChatColor.getLastColors(Config.KITMAP_STATS_KILLS_PLACEHOLDER) + userdata.getKills());
+            scoreboard.add(Config.KITMAP_STATS_DEATHS_PLACEHOLDER, ChatColor.getLastColors(Config.KITMAP_STATS_DEATHS_PLACEHOLDER) + userdata.getDeaths());
             scoreboard.add(Config.KITMAP_STATS_BALANCE_PLACEHOLDER, userdata.getBalance() + "");
 
             if(userdata.getKillstreak() > 0) {
