@@ -61,23 +61,44 @@ public class ChatHandler extends Handler implements Listener {
             return player.getDisplayName();
         }
 
-        return Color.translate(instance.getTag(player) + instance.getPrefix(player)
-            + instance.getNameColor(player) +  player.getName() + instance.getSuffix(player));
+        String tag = instance.getTag(player);
+        String prefix = instance.getPrefix(player);
+        String nameColor = instance.getNameColor(player);
+        String suffix = instance.getSuffix(player);
+        
+        // Ensure null values don't break formatting
+        tag = tag != null ? tag : "";
+        prefix = prefix != null ? prefix : "";
+        nameColor = nameColor != null ? nameColor : "";
+        suffix = suffix != null ? suffix : "";
+        
+        return Color.translate(tag + prefix + nameColor + player.getName() + suffix);
     }
 
     private String getChatMessage(PlayerFaction playerFaction, CommandSender recipient,
                                   String displayName, String chatColor, String message) {
 
+        // Ensure displayName and chatColor are not null
+        displayName = displayName != null ? displayName : "Unknown";
+        chatColor = chatColor != null ? chatColor : "";
+        message = message != null ? message : "";
+        
+        String format;
         if(playerFaction == null) {
-            return Config.CHAT_FORMAT.replace("<displayName>", displayName) + chatColor + message;
+            format = Config.CHAT_FORMAT != null ? Config.CHAT_FORMAT : "<displayName>: ";
+            return format.replace("<displayName>", displayName) + chatColor + message;
         }
 
-        return Config.CHAT_FORMAT_WITH_FACTION
-            .replace("<faction>", playerFaction.getName(recipient))
+        format = Config.CHAT_FORMAT_WITH_FACTION != null ? Config.CHAT_FORMAT_WITH_FACTION : "[<faction>] <displayName>: ";
+        String factionName = playerFaction.getName(recipient);
+        factionName = factionName != null ? factionName : "Unknown";
+        
+        return format
+            .replace("<faction>", factionName)
             .replace("<displayName>", displayName) + chatColor + message;
     }
 
-    @EventHandler(ignoreCancelled = true, priority = EventPriority.MONITOR)
+    @EventHandler(ignoreCancelled = true, priority = EventPriority.HIGHEST)
     public void onAsyncPlayerChat(AsyncPlayerChatEvent event) {
         if(!Config.CHAT_FORMAT_ENABLED) return;
 
@@ -93,8 +114,8 @@ public class ChatHandler extends Handler implements Listener {
             ? Color.translate(event.getMessage())
             : event.getMessage();
 
-        Bukkit.getConsoleSender().sendMessage(this.getChatMessage(faction,
-            Bukkit.getConsoleSender(), displayName, chatColor, message));
+        String consoleMessage = this.getChatMessage(faction, Bukkit.getConsoleSender(), displayName, chatColor, message);
+        Bukkit.getConsoleSender().sendMessage(consoleMessage);
 
         event.getRecipients().forEach(recipient -> {
             Userdata userdata = Lazarus.getInstance().getUserdataManager().getUserdata(recipient);
@@ -102,7 +123,10 @@ public class ChatHandler extends Handler implements Listener {
             if((player != recipient && !player.hasPermission("lazarus.staff") && !userdata
                 .getSettings().isPublicChat()) || userdata.isIgnoring(player)) return;
 
-            recipient.sendMessage(this.getChatMessage(faction, recipient, displayName, chatColor, message));
+            String playerMessage = this.getChatMessage(faction, recipient, displayName, chatColor, message);
+
+            // Use spigot method to avoid translation issues
+            recipient.spigot().sendMessage(net.md_5.bungee.api.chat.TextComponent.fromLegacyText(playerMessage));
         });
     }
 }

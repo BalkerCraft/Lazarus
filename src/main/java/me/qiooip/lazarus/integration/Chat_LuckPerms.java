@@ -47,13 +47,23 @@ public class Chat_LuckPerms extends ChatHandler {
 
     @Override
     public String getPrefix(Player player) {
-        String prefix = this.getMetaData(player).getPrefix();
-        return prefix == null ? "" : prefix;
+        try {
+            String prefix = this.getMetaData(player).getPrefix();
+            return prefix == null ? "" : prefix;
+        } catch (Exception e) {
+            Bukkit.getLogger().warning("[LuckPerms Chat] Failed to get prefix for " + player.getName() + ": " + e.getMessage());
+            return "";
+        }
     }
 
     @Override
     protected String getSuffix(Player player) {
-        String prefix = this.getMetaData(player).getSuffix();
-        return prefix == null ? "" : prefix;
+        try {
+            String suffix = this.getMetaData(player).getSuffix();
+            return suffix == null ? "" : suffix;
+        } catch (Exception e) {
+            Bukkit.getLogger().warning("[LuckPerms Chat] Failed to get suffix for " + player.getName() + ": " + e.getMessage());
+            return "";
+        }
     }
 }
