@@ -41,6 +41,7 @@ import me.qiooip.lazarus.glass.GlassManager;
 import me.qiooip.lazarus.handlers.BottleHandler;
 import me.qiooip.lazarus.handlers.InventoryHandler;
 import me.qiooip.lazarus.handlers.MapkitHandler;
+import me.qiooip.lazarus.handlers.SpawnTeleportHandler;
 import me.qiooip.lazarus.handlers.StatsHandler;
 import me.qiooip.lazarus.handlers.block.AutoSmeltHandler;
 import me.qiooip.lazarus.handlers.block.CrowbarHandler;
@@ -50,6 +51,7 @@ import me.qiooip.lazarus.handlers.chat.ChatHandler;
 import me.qiooip.lazarus.handlers.chat.MessagingHandler;
 import me.qiooip.lazarus.handlers.death.DeathMessageHandler;
 import me.qiooip.lazarus.handlers.kitmap.KillstreakHandler;
+import me.qiooip.lazarus.handlers.leaderboard.LeaderboardHandler;
 import me.qiooip.lazarus.handlers.limiter.PotionLimiterHandler;
 import me.qiooip.lazarus.handlers.logger.CombatLoggerHandler;
 import me.qiooip.lazarus.handlers.manager.Handler;
@@ -67,7 +69,9 @@ import me.qiooip.lazarus.handlers.staff.RebootHandler;
 import me.qiooip.lazarus.handlers.staff.StaffChatHandler;
 import me.qiooip.lazarus.handlers.staff.WarpsHandler;
 import me.qiooip.lazarus.handlers.timer.EotwHandler;
+import me.qiooip.lazarus.handlers.timer.PurgeHandler;
 import me.qiooip.lazarus.handlers.timer.SotwHandler;
+import me.qiooip.lazarus.hologram.HologramManager;
 import me.qiooip.lazarus.integration.vault.Economy_Lazarus;
 import me.qiooip.lazarus.kits.KitsManager;
 import me.qiooip.lazarus.kits.commands.KitCommandExecutor;
@@ -189,6 +193,8 @@ public class Lazarus extends JavaPlugin {
     private StaffChatHandler staffChatHandler;
     private StatsHandler statsHandler;
     private WarpsHandler warpsHandler;
+
+    private HologramManager hologramManager;
 
     @Override
     public void onEnable() {

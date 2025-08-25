@@ -37,11 +37,7 @@ public abstract class NmsUtils {
     public static void init() {
         String version = Bukkit.getServer().getClass().getPackage().getName().split("\\.")[3];
 
-        if(version.equalsIgnoreCase("v1_7_R4")) {
-            instance = new NmsUtils_1_7();
-        } else {
-            instance = new NmsUtils_1_8();
-        }
+        instance = new NmsUtils_1_8();
     }
 
     public abstract void disable();

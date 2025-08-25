@@ -10,7 +10,6 @@ import me.qiooip.lazarus.factions.type.KothFaction;
 import me.qiooip.lazarus.handlers.chat.ChatHandler;
 import me.qiooip.lazarus.handlers.event.LazarusKickEvent;
 import me.qiooip.lazarus.handlers.manager.Handler;
-import me.qiooip.lazarus.integration.spigot.CustomSpigotListener;
 import me.qiooip.lazarus.integration.spigot.DefaultSpigotListener;
 import me.qiooip.lazarus.timer.TimerManager;
 import me.qiooip.lazarus.timer.cooldown.CooldownTimer;
@@ -66,17 +65,7 @@ public class DynamicEventHandler extends Handler implements Listener {
 
     public DynamicEventHandler() {
         Bukkit.getWorlds().forEach(world -> world.setWeatherDuration(0));
-
-        try {
-            if(NmsUtils.getInstance().isCustomSpigot()) {
-                new CustomSpigotListener();
-            } else {
-                new DefaultSpigotListener();
-            }
-
-        } catch(NoSuchFieldException e) {
-            new DefaultSpigotListener();
-        }
+        new DefaultSpigotListener();
     }
 
     @EventHandler(ignoreCancelled = true)

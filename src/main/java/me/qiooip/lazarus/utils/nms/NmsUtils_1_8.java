@@ -1,5 +1,6 @@
 package me.qiooip.lazarus.utils.nms;
 
+import com.viaversion.viaversion.api.Via;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
@@ -15,12 +16,12 @@ import me.qiooip.lazarus.games.dragon.EnderDragon;
 import me.qiooip.lazarus.games.dragon.nms.EnderDragon_1_8;
 import me.qiooip.lazarus.games.loot.LootData;
 import me.qiooip.lazarus.glass.GlassInfo;
-import me.qiooip.lazarus.hologram.reflection.HologramReflection_1_8.PacketPlayOutEntityTeleportWrapper;
-import me.qiooip.lazarus.hologram.reflection.HologramReflection_1_8.PacketPlayOutSpawnEntityLivingWrapper;
 import me.qiooip.lazarus.handlers.logger.CombatLogger;
 import me.qiooip.lazarus.handlers.logger.CombatLoggerType;
 import me.qiooip.lazarus.handlers.logger.nms.SkeletonCombatLogger_1_8;
 import me.qiooip.lazarus.handlers.logger.nms.VillagerCombatLogger_1_8;
+import me.qiooip.lazarus.hologram.reflection.HologramReflection_1_8.PacketPlayOutEntityTeleportWrapper;
+import me.qiooip.lazarus.hologram.reflection.HologramReflection_1_8.PacketPlayOutSpawnEntityLivingWrapper;
 import me.qiooip.lazarus.scoreboard.PlayerScoreboard;
 import me.qiooip.lazarus.scoreboard.nms.PlayerScoreboard_1_8;
 import me.qiooip.lazarus.tab.PlayerTab;
@@ -91,8 +92,6 @@ import org.bukkit.plugin.Plugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scoreboard.Scoreboard;
-import protocolsupport.api.ProtocolSupportAPI;
-import us.myles.ViaVersion.api.Via;
 
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
@@ -122,8 +121,6 @@ public class NmsUtils_1_8 extends NmsUtils implements Listener {
 
         if((plugin = Bukkit.getPluginManager().getPlugin("ViaVersion")) != null && plugin.isEnabled()) {
             this.clientVersionFunction = player -> Via.getAPI().getPlayerVersion(player.getUniqueId());
-        } else if((plugin = Bukkit.getPluginManager().getPlugin("ProtocolSupport")) != null && plugin.isEnabled()) {
-            this.clientVersionFunction = player -> ProtocolSupportAPI.getProtocolVersion(player).getId();
         } else {
             this.clientVersionFunction = player -> 47;
         }

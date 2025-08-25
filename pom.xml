@@ -28,23 +28,18 @@
     <dependencies>
         <dependency>
             <groupId>org.spigotmc</groupId>
-            <artifactId>spigot-8</artifactId>
-            <version>1.8.8</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.spigotmc</groupId>
             <artifactId>spigot-api</artifactId>
-            <version>1.7-Custom</version>
-            <scope>provided</scope>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
+<!--            <scope>provided</scope>-->
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/customspigot.jar</systemPath>
         </dependency>
-
         <dependency>
             <groupId>org.spigotmc</groupId>
             <artifactId>spigot</artifactId>
-            <version>1.7-Custom</version>
-            <scope>provided</scope>
+            <version>1.8.8-R0.1-SNAPSHOT</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/customspigot.jar</systemPath>
         </dependency>
 
         <dependency>
@@ -60,13 +55,6 @@
         </dependency>
 
         <dependency>
-            <groupId>org.anjocaido</groupId>
-            <artifactId>groupmanager</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
             <groupId>net.luckperms</groupId>
             <artifactId>api</artifactId>
             <version>5.3</version>
@@ -74,149 +62,32 @@
         </dependency>
 
         <dependency>
-            <groupId>com.broustudio</groupId>
-            <artifactId>atom-api</artifactId>
-            <version>1.0</version>
+            <groupId>com.github.MilkBowl</groupId>
+            <artifactId>VaultAPI</artifactId>
+            <version>1.7</version>
             <scope>provided</scope>
         </dependency>
 
         <dependency>
-            <groupId>me.abhi</groupId>
-            <artifactId>mcore</artifactId>
-            <version>1.24</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.broustudio</groupId>
-            <artifactId>mizu-api</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>ru.tehkode</groupId>
-            <artifactId>pex</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>me.absurd</groupId>
-            <artifactId>nCore-api</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.gustav9797</groupId>
-            <artifactId>powerfulperms</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.voltanemc</groupId>
-            <artifactId>spark</artifactId>
-            <version>1.1</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>me.quartz</groupId>
-            <artifactId>hestia</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>org.tyrannyofheaven</groupId>
-            <artifactId>zpermissions</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>me.activated.core</groupId>
-            <artifactId>aquacore-api</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.minexd</groupId>
-            <artifactId>zoot</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>land.potion</groupId>
-            <artifactId>core-api</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.broustudio</groupId>
-            <artifactId>Basic-API</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>me.TechsCode</groupId>
-            <artifactId>UltraPermissions</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>com.github.coleedwards</groupId>
-            <artifactId>ChroniumAPI</artifactId>
-            <version>51d37c0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>club.frozed</groupId>
-            <artifactId>core</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>net.milkbowl</groupId>
-            <artifactId>vault</artifactId>
-            <version>1.7.2</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>protocolsupport</groupId>
-            <artifactId>protocolsupport</artifactId>
-            <version>1.0</version>
-            <scope>provided</scope>
-        </dependency>
-
-        <dependency>
-            <groupId>us.myles</groupId>
-            <artifactId>viaversion</artifactId>
-            <version>2.2.3</version>
-            <scope>provided</scope>
+            <groupId>com.viaversion</groupId>
+            <artifactId>viaversion-api</artifactId>
+            <version>LATEST</version>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/ViaVersion-5.4.2.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>com.lunarclient</groupId>
             <artifactId>bukkitapi</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <scope>provided</scope>
+            <scope>system</scope>
+            <systemPath>${project.basedir}/lib/bukkitapi.jar</systemPath>
         </dependency>
 
         <dependency>
             <groupId>org.projectlombok</groupId>
             <artifactId>lombok</artifactId>
-            <version>1.18.22</version>
+            <version>1.18.36</version>
             <scope>provided</scope>
         </dependency>
 

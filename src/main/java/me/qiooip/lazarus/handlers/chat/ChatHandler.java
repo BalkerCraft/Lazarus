@@ -6,24 +6,7 @@ import me.qiooip.lazarus.config.Config;
 import me.qiooip.lazarus.factions.FactionsManager;
 import me.qiooip.lazarus.factions.type.PlayerFaction;
 import me.qiooip.lazarus.handlers.manager.Handler;
-import me.qiooip.lazarus.integration.Chat_AquaCore;
-import me.qiooip.lazarus.integration.Chat_Atom;
-import me.qiooip.lazarus.integration.Chat_Basic;
-import me.qiooip.lazarus.integration.Chat_Chronium;
-import me.qiooip.lazarus.integration.Chat_Core;
-import me.qiooip.lazarus.integration.Chat_GroupManager;
-import me.qiooip.lazarus.integration.Chat_HestiaCore;
 import me.qiooip.lazarus.integration.Chat_LuckPerms;
-import me.qiooip.lazarus.integration.Chat_Mizu;
-import me.qiooip.lazarus.integration.Chat_NCore;
-import me.qiooip.lazarus.integration.Chat_PermissionsEx;
-import me.qiooip.lazarus.integration.Chat_PowerfulPerms;
-import me.qiooip.lazarus.integration.Chat_Spark;
-import me.qiooip.lazarus.integration.Chat_UltraPermissions;
-import me.qiooip.lazarus.integration.Chat_Zoom;
-import me.qiooip.lazarus.integration.Chat_Zoot;
-import me.qiooip.lazarus.integration.Chat_mCore;
-import me.qiooip.lazarus.integration.Chat_zPermissions;
 import me.qiooip.lazarus.userdata.Userdata;
 import me.qiooip.lazarus.utils.Color;
 import org.bukkit.Bukkit;
@@ -42,42 +25,8 @@ public class ChatHandler extends Handler implements Listener {
     public static void setup() {
         PluginManager pluginManager = Bukkit.getPluginManager();
 
-        if(pluginManager.isPluginEnabled("AquaCore")) {
-            instance = new Chat_AquaCore();
-        } else if(pluginManager.isPluginEnabled("AtomAPI")) {
-            instance = new Chat_Atom();
-        } else if(pluginManager.isPluginEnabled("Chronium")) {
-            instance = new Chat_Chronium();
-        } else if(pluginManager.isPluginEnabled("CoreAPI")) {
-            instance = new Chat_Basic();
-        } else if(pluginManager.isPluginEnabled("Core")) {
-            instance = new Chat_Core();
-        } else if(pluginManager.isPluginEnabled("GroupManager")) {
-            instance = new Chat_GroupManager();
-        } else if(pluginManager.isPluginEnabled("HestiaCore")) {
-            instance = new Chat_HestiaCore();
-        } else if(pluginManager.isPluginEnabled("LuckPerms")) {
+        if(pluginManager.isPluginEnabled("LuckPerms")) {
             instance = new Chat_LuckPerms();
-        } else if(pluginManager.isPluginEnabled("mCore")) {
-            instance = new Chat_mCore();
-        } else if(pluginManager.isPluginEnabled("MizuAPI")) {
-            instance = new Chat_Mizu();
-        } else if(pluginManager.isPluginEnabled("NCore")) {
-            instance = new Chat_NCore();
-        } else if(pluginManager.isPluginEnabled("PermissionsEx")) {
-            instance = new Chat_PermissionsEx();
-        } else if(pluginManager.isPluginEnabled("PowerfulPerms")) {
-            instance = new Chat_PowerfulPerms();
-        } else if(pluginManager.isPluginEnabled("Spark")) {
-            instance = new Chat_Spark();
-        } else if(pluginManager.isPluginEnabled("UltraPermissions")) {
-            instance = new Chat_UltraPermissions();
-        } else if(pluginManager.isPluginEnabled("Zoom")) {
-            instance = new Chat_Zoom();
-        } else if(pluginManager.isPluginEnabled("Zoot")) {
-            instance = new Chat_Zoot();
-        } else if(pluginManager.isPluginEnabled("zPermissions")) {
-            instance = new Chat_zPermissions();
         } else {
             instance = new ChatHandler();
         }
