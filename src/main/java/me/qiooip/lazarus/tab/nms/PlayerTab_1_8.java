@@ -23,7 +23,6 @@ import java.util.UUID;
 public class PlayerTab_1_8 extends ScoreboardBase_1_8 implements PlayerTab {
 
     @Getter
-    private int clientVersion;
     private GameProfile[] profiles;
 
     private String[] teamNames;
@@ -36,8 +35,6 @@ public class PlayerTab_1_8 extends ScoreboardBase_1_8 implements PlayerTab {
 
     @Override
     public void unregister() {
-        if(this.clientVersion < 47) return;
-
         for(GameProfile profile : this.profiles) {
             this.removePlayerInfo(profile);
         }
@@ -49,25 +46,14 @@ public class PlayerTab_1_8 extends ScoreboardBase_1_8 implements PlayerTab {
     }
 
     private void setup(CraftPlayer cplayer) {
-        this.clientVersion = NmsUtils.getInstance().getClientVersion(cplayer);
 
         this.profiles = new GameProfile[80];
         this.teamNames = new String[60];
 
         this.contents = new String[80];
 
-        if(this.clientVersion >= 47) {
-            for(int i = 1; i <= 80; i++) {
-                this.setupTabEntry(i);
-            }
-        } else {
-            this.removePlayersFromTab(cplayer);
-
-            for(int y = 1; y <= 20; y++) {
-                for(int x = 0; x < 3; x++) {
-                    this.setupTabEntry_1_7((x * 20) + y);
-                }
-            }
+        for(int i = 1; i <= 80; i++) {
+            this.setupTabEntry(i);
         }
     }
 
@@ -79,28 +65,7 @@ public class PlayerTab_1_8 extends ScoreboardBase_1_8 implements PlayerTab {
 
         if(this.contents[reduced] != null && this.contents[reduced].equals(line)) return;
 
-        if(this.clientVersion >= 47) {
-            this.updateDisplayName(this.profiles[reduced], line);
-        } else {
-            if(index > 60) return;
-
-            Team team = this.getTeam(this.teamNames[reduced]);
-
-            String prefix;
-            String suffix;
-
-            if(line.length() > 16) {
-                int split = line.charAt(15) == ChatColor.COLOR_CHAR ? 15 : 16;
-
-                prefix = line.substring(0, split);
-                suffix = ChatColor.getLastColors(prefix) + line.substring(split);
-            } else {
-                prefix = line;
-                suffix = "";
-            }
-
-            this.updateTeam(team.getName(), prefix, suffix.length() > 16 ? suffix.substring(0, 16) : suffix);
-        }
+        this.updateDisplayName(this.profiles[reduced], line);
 
         this.contents[reduced] = line;
     }

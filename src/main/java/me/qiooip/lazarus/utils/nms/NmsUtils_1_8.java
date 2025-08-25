@@ -5,6 +5,7 @@ import io.netty.channel.Channel;
 import io.netty.channel.ChannelDuplexHandler;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
+import me.clip.placeholderapi.PlaceholderAPI;
 import me.qiooip.lazarus.Lazarus;
 import me.qiooip.lazarus.abilities.AbilitiesManager;
 import me.qiooip.lazarus.abilities.AbilityType;
@@ -516,9 +517,17 @@ public class NmsUtils_1_8 extends NmsUtils implements Listener {
 
     @Override
     public void sendHeaderAndFooter(Player player) {
+        String header = Config.TAB_HEADER;
+        String footer = Config.TAB_FOOTER;
+
+        if (Lazarus.getInstance().isPlaceholderAPI()) {
+            header = PlaceholderAPI.setPlaceholders(player, header);
+            footer = PlaceholderAPI.setPlaceholders(player, footer);
+        }
+
         player.setPlayerListHeaderFooter(
-            TextComponent.fromLegacyText(Config.TAB_HEADER),
-            TextComponent.fromLegacyText(Config.TAB_FOOTER)
+            TextComponent.fromLegacyText(header),
+            TextComponent.fromLegacyText(footer)
         );
     }
 

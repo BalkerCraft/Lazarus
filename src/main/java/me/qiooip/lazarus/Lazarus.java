@@ -115,6 +115,7 @@ public class Lazarus extends JavaPlugin {
     @Setter private boolean fullyEnabled;
 
     private Gson gson;
+    private boolean placeholderAPI;
 
     @Setter private ConfigFile config;
     @Setter private ConfigFile language;
@@ -199,6 +200,10 @@ public class Lazarus extends JavaPlugin {
     @Override
     public void onEnable() {
         instance = this;
+
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            this.placeholderAPI = true;
+        }
 
         Config.START_TIME = System.currentTimeMillis();
         NmsUtils.init();
@@ -293,6 +298,7 @@ public class Lazarus extends JavaPlugin {
         this.staffModeManager.disable();
         this.vanishManager.disable();
         this.abilitiesManager.disable();
+        this.hologramManager.disable();
 
         if(this.lunarClientManager != null) {
             this.lunarClientManager.disable();

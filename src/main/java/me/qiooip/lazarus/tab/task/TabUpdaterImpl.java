@@ -9,6 +9,7 @@ import me.qiooip.lazarus.tab.module.TabModule;
 import me.qiooip.lazarus.tab.module.impl.FactionInfoModule;
 import me.qiooip.lazarus.tab.module.impl.NextKothModule;
 import me.qiooip.lazarus.utils.Tasks;
+import me.qiooip.lazarus.utils.nms.NmsUtils;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 
@@ -97,6 +98,8 @@ public class TabUpdaterImpl implements TabUpdater {
                 if(this.locationFunction != null) {
                     tab.set(this.locationSlot, this.locationFunction.apply(player));
                 }
+
+                NmsUtils.getInstance().sendHeaderAndFooter(player);
             }
         } catch(Throwable t) {
             t.printStackTrace();
