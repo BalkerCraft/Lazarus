@@ -522,6 +522,14 @@ public class NmsUtils_1_8 extends NmsUtils implements Listener {
 
         if (Lazarus.getInstance().isPlaceholderAPI()) {
             header = PlaceholderAPI.setPlaceholders(player, header);
+
+            int onlinePlayers = Bukkit.getOnlinePlayers().size();
+
+            if (!player.hasPermission("lazarus.vanish")) {
+                onlinePlayers -= Lazarus.getInstance().getVanishManager().vanishedAmount();
+            }
+            header = header.replaceAll("<online>", String.valueOf(onlinePlayers));
+
             footer = PlaceholderAPI.setPlaceholders(player, footer);
         }
 
