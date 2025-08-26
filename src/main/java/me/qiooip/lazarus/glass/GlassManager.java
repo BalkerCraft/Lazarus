@@ -182,9 +182,15 @@ public class GlassManager implements Listener, ManagerEnabler {
         
         if(!insideClaim) {
             // Player is outside - check if they're trying to enter (within buffer zone)
-            double buffer = 1.0; // Buffer zone around claim for knockback
+            double buffer = 1.5; // Increased buffer zone for better detection
             boolean inBufferZone = px >= (claim.getMinX() - buffer) && px <= (claim.getMaxX() + buffer) &&
                                   pz >= (claim.getMinZ() - buffer) && pz <= (claim.getMaxZ() + buffer);
+            
+            if(Config.GLASS_DEBUG && inBufferZone) {
+                player.sendMessage("§a[Glass Debug] In buffer zone - Outside claim, will knockback");
+                player.sendMessage("§a[Glass Debug] Player pos: X=" + String.format("%.2f", px) + ", Z=" + String.format("%.2f", pz));
+                player.sendMessage("§a[Glass Debug] Claim bounds: X=[" + claim.getMinX() + "," + claim.getMaxX() + "], Z=[" + claim.getMinZ() + "," + claim.getMaxZ() + "]");
+            }
             
             return inBufferZone; // Knockback if in buffer zone but outside claim
         }
@@ -229,28 +235,43 @@ public class GlassManager implements Listener, ManagerEnabler {
                                          Math.min(distanceFromMinZ, distanceFromMaxZ));
             
             if(distanceFromMinX == minDistance) {
-                knockbackX = -knockbackStrength; // Push west (out of claim)
+                knockbackX = knockbackStrength; // Push east (away from west boundary)
             } else if(distanceFromMaxX == minDistance) {
-                knockbackX = knockbackStrength; // Push east (out of claim)
+                knockbackX = -knockbackStrength; // Push west (away from east boundary)
             } else if(distanceFromMinZ == minDistance) {
-                knockbackZ = -knockbackStrength; // Push north (out of claim)
+                knockbackZ = knockbackStrength; // Push south (away from north boundary)
             } else {
-                knockbackZ = knockbackStrength; // Push south (out of claim)
+                knockbackZ = -knockbackStrength; // Push north (away from south boundary)
             }
         } else {
-            // Player is outside - push them away from the claim
-            double claimCenterX = (claim.getMinX() + claim.getMaxX()) / 2.0;
-            double claimCenterZ = (claim.getMinZ() + claim.getMaxZ()) / 2.0;
+            // Player is outside - determine which boundary they're closest to and push away
+            double distToMinX = Math.abs(px - claim.getMinX());
+            double distToMaxX = Math.abs(px - claim.getMaxX());
+            double distToMinZ = Math.abs(pz - claim.getMinZ());
+            double distToMaxZ = Math.abs(pz - claim.getMaxZ());
             
-            // Calculate direction from claim center to player
-            double directionX = px - claimCenterX;
-            double directionZ = pz - claimCenterZ;
+            // Determine primary knockback direction based on closest boundary
+            if(px < claim.getMinX()) {
+                // Player is west of claim - push west
+                knockbackX = -knockbackStrength;
+            } else if(px > claim.getMaxX()) {
+                // Player is east of claim - push east
+                knockbackX = knockbackStrength;
+            }
             
-            // Normalize and apply knockback strength
-            double length = Math.sqrt(directionX * directionX + directionZ * directionZ);
-            if(length > 0) {
-                knockbackX = (directionX / length) * knockbackStrength;
-                knockbackZ = (directionZ / length) * knockbackStrength;
+            if(pz < claim.getMinZ()) {
+                // Player is north of claim - push north
+                knockbackZ = -knockbackStrength;
+            } else if(pz > claim.getMaxZ()) {
+                // Player is south of claim - push south
+                knockbackZ = knockbackStrength;
+            }
+            
+            // If player is at a corner, normalize the knockback vector
+            if(knockbackX != 0 && knockbackZ != 0) {
+                double length = Math.sqrt(knockbackX * knockbackX + knockbackZ * knockbackZ);
+                knockbackX = (knockbackX / length) * knockbackStrength;
+                knockbackZ = (knockbackZ / length) * knockbackStrength;
             }
         }
         
@@ -282,10 +303,11 @@ public class GlassManager implements Listener, ManagerEnabler {
         
         Location playerLoc = player.getLocation();
         
-        // Get nearby claims
+        // Get nearby claims - asymmetric expansion for proper boundary detection
+        // Need more expansion on min sides (west/north) for approaching detection
         Set<Claim> claims = ClaimManager.getInstance().getClaimsInSelection(playerLoc.getWorld(),
-            playerLoc.getBlockX() - 1, playerLoc.getBlockX() + 1,
-            playerLoc.getBlockZ() - 1, playerLoc.getBlockZ() + 1);
+            playerLoc.getBlockX() - 2, playerLoc.getBlockX() + 1,
+            playerLoc.getBlockZ() - 2, playerLoc.getBlockZ() + 1);
         
         if(claims.isEmpty()) return;
         
