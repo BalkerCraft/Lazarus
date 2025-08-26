@@ -16,10 +16,10 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.Sound;
 import org.bukkit.entity.Player;
-import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
+import org.bukkit.util.Vector;
 
 import java.util.EnumSet;
 import java.util.HashMap;
@@ -176,27 +176,32 @@ public class GlassManager implements Listener, ManagerEnabler {
         double px = playerLoc.getX();
         double pz = playerLoc.getZ();
         
-        // Check if player is inside the claim
+        // Check if player is inside the claim boundaries
         boolean insideClaim = px >= claim.getMinX() && px <= claim.getMaxX() && 
                              pz >= claim.getMinZ() && pz <= claim.getMaxZ();
         
         if(!insideClaim) {
-            return false; // Player is outside, no need to teleport
+            // Player is outside - check if they're trying to enter (within buffer zone)
+            double buffer = 1.0; // Buffer zone around claim for knockback
+            boolean inBufferZone = px >= (claim.getMinX() - buffer) && px <= (claim.getMaxX() + buffer) &&
+                                  pz >= (claim.getMinZ() - buffer) && pz <= (claim.getMaxZ() + buffer);
+            
+            return inBufferZone; // Knockback if in buffer zone but outside claim
         }
         
-        // Calculate distance from boundaries (when inside the claim)
-        double distanceFromMinX = px - claim.getMinX();  // Distance from west boundary
-        double distanceFromMaxX = claim.getMaxX() - px;  // Distance from east boundary
-        double distanceFromMinZ = pz - claim.getMinZ();  // Distance from north boundary
-        double distanceFromMaxZ = claim.getMaxZ() - pz;  // Distance from south boundary
+        // Player is inside claim - check if they're near the edge (for knockback out)
+        double edgeDistance = 0.5; // Distance from edge to trigger knockback
         
-        // Check if player is within 0.8 blocks of any boundary (inside the claim)
-        boolean nearMinX = distanceFromMinX < 0.8 && pz >= claim.getMinZ() && pz <= claim.getMaxZ();
-        boolean nearMaxX = distanceFromMaxX < 0.8 && pz >= claim.getMinZ() && pz <= claim.getMaxZ();
-        boolean nearMinZ = distanceFromMinZ < 0.8 && px >= claim.getMinX() && px <= claim.getMaxX();
-        boolean nearMaxZ = distanceFromMaxZ < 0.8 && px >= claim.getMinX() && px <= claim.getMaxX();
+        double distanceFromMinX = px - claim.getMinX();
+        double distanceFromMaxX = claim.getMaxX() - px;
+        double distanceFromMinZ = pz - claim.getMinZ();
+        double distanceFromMaxZ = claim.getMaxZ() - pz;
         
-        return nearMinX || nearMaxX || nearMinZ || nearMaxZ;
+        // Find minimum distance to any boundary
+        double minDistanceToBoundary = Math.min(Math.min(distanceFromMinX, distanceFromMaxX),
+                                               Math.min(distanceFromMinZ, distanceFromMaxZ));
+        
+        return minDistanceToBoundary <= edgeDistance;
     }
     
     private void knockbackPlayerFromGlass(Player player, Claim claim) {
@@ -204,35 +209,53 @@ public class GlassManager implements Listener, ManagerEnabler {
         double px = playerLoc.getX();
         double pz = playerLoc.getZ();
         
-        // Calculate distances from boundaries to determine which one player is closest to
-        double distanceFromMinX = px - claim.getMinX();
-        double distanceFromMaxX = claim.getMaxX() - px;
-        double distanceFromMinZ = pz - claim.getMinZ();
-        double distanceFromMaxZ = claim.getMaxZ() - pz;
+        // Check if player is inside or outside the claim
+        boolean insideClaim = px >= claim.getMinX() && px <= claim.getMaxX() && 
+                             pz >= claim.getMinZ() && pz <= claim.getMaxZ();
         
-        // Find the closest boundary and calculate knockback direction
-        double minDistance = Math.min(Math.min(distanceFromMinX, distanceFromMaxX), 
-                                     Math.min(distanceFromMinZ, distanceFromMaxZ));
-        
-        // Calculate knockback vector based on which boundary the player is closest to
         double knockbackX = 0;
         double knockbackZ = 0;
-        double knockbackStrength = 1.5; // Knockback strength multiplier (5-7 blocks)
+        double knockbackStrength = 1.5;
         
-        if(distanceFromMinX == minDistance) {
-            knockbackX = -knockbackStrength; // Push west (negative X)
-        } else if(distanceFromMaxX == minDistance) {
-            knockbackX = knockbackStrength; // Push east (positive X)
-        }
-        
-        if(distanceFromMinZ == minDistance) {
-            knockbackZ = -knockbackStrength; // Push north (negative Z)
-        } else if(distanceFromMaxZ == minDistance) {
-            knockbackZ = knockbackStrength; // Push south (positive Z)
+        if(insideClaim) {
+            // Player is inside - push them to the nearest boundary (outward)
+            double distanceFromMinX = px - claim.getMinX();
+            double distanceFromMaxX = claim.getMaxX() - px;
+            double distanceFromMinZ = pz - claim.getMinZ();
+            double distanceFromMaxZ = claim.getMaxZ() - pz;
+            
+            // Find closest boundary and push away from it
+            double minDistance = Math.min(Math.min(distanceFromMinX, distanceFromMaxX), 
+                                         Math.min(distanceFromMinZ, distanceFromMaxZ));
+            
+            if(distanceFromMinX == minDistance) {
+                knockbackX = -knockbackStrength; // Push west (out of claim)
+            } else if(distanceFromMaxX == minDistance) {
+                knockbackX = knockbackStrength; // Push east (out of claim)
+            } else if(distanceFromMinZ == minDistance) {
+                knockbackZ = -knockbackStrength; // Push north (out of claim)
+            } else {
+                knockbackZ = knockbackStrength; // Push south (out of claim)
+            }
+        } else {
+            // Player is outside - push them away from the claim
+            double claimCenterX = (claim.getMinX() + claim.getMaxX()) / 2.0;
+            double claimCenterZ = (claim.getMinZ() + claim.getMaxZ()) / 2.0;
+            
+            // Calculate direction from claim center to player
+            double directionX = px - claimCenterX;
+            double directionZ = pz - claimCenterZ;
+            
+            // Normalize and apply knockback strength
+            double length = Math.sqrt(directionX * directionX + directionZ * directionZ);
+            if(length > 0) {
+                knockbackX = (directionX / length) * knockbackStrength;
+                knockbackZ = (directionZ / length) * knockbackStrength;
+            }
         }
         
         // Create and apply knockback velocity
-        Vector knockback = new Vector(knockbackX, 0.4, knockbackZ); // Slight upward velocity for better knockback feel
+        Vector knockback = new Vector(knockbackX, 0.3, knockbackZ);
         player.setVelocity(knockback);
         
         // Play effects at player location
@@ -247,8 +270,8 @@ public class GlassManager implements Listener, ManagerEnabler {
         }
 
         if(Config.GLASS_DEBUG) {
-            player.sendMessage("§c[Glass Debug] You were " + String.format("%.2f", minDistance) + " blocks from the nearest boundary!");
-            player.sendMessage("§c[Glass Debug] Knockback applied: X=" + String.format("%.2f", knockbackX) + 
+            player.sendMessage("§c[Glass Debug] Knockback applied from claim: " + claim.getOwner().getDisplayName(player));
+            player.sendMessage("§c[Glass Debug] Knockback vector: X=" + String.format("%.2f", knockbackX) + 
                 ", Z=" + String.format("%.2f", knockbackZ));
         }
     }
@@ -317,6 +340,7 @@ public class GlassManager implements Listener, ManagerEnabler {
                 && loc1.getBlockY() == loc2.getBlockY()
                 && loc1.getBlockZ() == loc2.getBlockZ();
         }
+
 
         @EventHandler
         public void onPlayerQuit(PlayerQuitEvent event) {
