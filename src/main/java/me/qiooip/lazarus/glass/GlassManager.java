@@ -12,10 +12,11 @@ import me.qiooip.lazarus.utils.ManagerEnabler;
 import me.qiooip.lazarus.utils.Tasks;
 import org.bukkit.Bukkit;
 import org.bukkit.Effect;
-import org.bukkit.Sound;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.Sound;
 import org.bukkit.entity.Player;
+import org.bukkit.util.Vector;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerQuitEvent;
@@ -151,9 +152,12 @@ public class GlassManager implements Listener, ManagerEnabler {
     }
 
     private void handlePlayerMove(Player player, Location from, Location to, GlassType forced) {
+        // Glass visuals are disabled - only knockback functionality remains
+        // This method is now primarily used for clearing any existing glass visuals
         GlassType type = this.getGlassType(player, forced);
         if(type == null) return;
 
+        // Clear any existing glass visuals that might be present
         this.clearGlassVisuals(player, type, glassInfo -> {
             Location loc = glassInfo.getLocation();
 
@@ -163,29 +167,7 @@ public class GlassManager implements Listener, ManagerEnabler {
                 || Math.abs(loc.getBlockZ() - to.getBlockZ()) > WALL_BORDER_WIDTH);
         });
 
-        Set<Claim> claims = ClaimManager.getInstance().getClaimsInSelection(to.getWorld(),
-            to.getBlockX() - WALL_BORDER_WIDTH, to.getBlockX() + WALL_BORDER_WIDTH,
-            to.getBlockZ() - WALL_BORDER_WIDTH, to.getBlockZ() + WALL_BORDER_WIDTH);
-
-        if(claims.isEmpty()) return;
-
-        if(type == GlassType.SPAWN_WALL) {
-            claims.removeIf(claim -> !claim.getOwner().isSafezone());
-        } else {
-            PlayerFaction playerFaction = FactionsManager.getInstance().getPlayerFaction(player);
-
-            claims.removeIf(claim -> claim.getOwner() instanceof RoadFaction || claim.getOwner().isSafezone()
-                || (Config.PVP_PROTECTION_CAN_ENTER_OWN_CLAIM && claim.getOwner() == playerFaction));
-        }
-
-        claims.forEach(claim -> claim.getClosestSides(to).forEach(side -> {
-            for(int y = -WALL_BORDER_HEIGHT + 1; y <= WALL_BORDER_HEIGHT; y++) {
-                Location location = side.clone();
-                location.setY(to.getBlockY() + y);
-
-                this.generateGlassVisual(player, new GlassInfo(type, location, Material.STAINED_GLASS, (byte) 14));
-            }
-        }));
+        // Glass generation has been removed - only knockback remains
     }
     
     private boolean isPlayerInsideGlassWall(Player player, Claim claim) {
@@ -217,14 +199,10 @@ public class GlassManager implements Listener, ManagerEnabler {
         return nearMinX || nearMaxX || nearMinZ || nearMaxZ;
     }
     
-    private void teleportPlayerOutsideGlass(Player player, Claim claim) {
+    private void knockbackPlayerFromGlass(Player player, Claim claim) {
         Location playerLoc = player.getLocation();
         double px = playerLoc.getX();
         double pz = playerLoc.getZ();
-        
-        // Calculate the safe teleport location outside the glass
-        double newX = playerLoc.getX();
-        double newZ = playerLoc.getZ();
         
         // Calculate distances from boundaries to determine which one player is closest to
         double distanceFromMinX = px - claim.getMinX();
@@ -232,29 +210,35 @@ public class GlassManager implements Listener, ManagerEnabler {
         double distanceFromMinZ = pz - claim.getMinZ();
         double distanceFromMaxZ = claim.getMaxZ() - pz;
         
-        // Find the closest boundary and teleport outside it
+        // Find the closest boundary and calculate knockback direction
         double minDistance = Math.min(Math.min(distanceFromMinX, distanceFromMaxX), 
                                      Math.min(distanceFromMinZ, distanceFromMaxZ));
         
-        // Teleport based on which boundary the player is closest to
+        // Calculate knockback vector based on which boundary the player is closest to
+        double knockbackX = 0;
+        double knockbackZ = 0;
+        double knockbackStrength = 1.5; // Knockback strength multiplier (5-7 blocks)
+        
         if(distanceFromMinX == minDistance) {
-            newX = claim.getMinX() - 3.5; // Teleport 3.5 blocks outside west boundary
+            knockbackX = -knockbackStrength; // Push west (negative X)
         } else if(distanceFromMaxX == minDistance) {
-            newX = claim.getMaxX() + 3.5; // Teleport 3.5 blocks outside east boundary
+            knockbackX = knockbackStrength; // Push east (positive X)
         }
         
         if(distanceFromMinZ == minDistance) {
-            newZ = claim.getMinZ() - 3.5; // Teleport 3.5 blocks outside north boundary
+            knockbackZ = -knockbackStrength; // Push north (negative Z)
         } else if(distanceFromMaxZ == minDistance) {
-            newZ = claim.getMaxZ() + 3.5; // Teleport 3.5 blocks outside south boundary
+            knockbackZ = knockbackStrength; // Push south (positive Z)
         }
-
-        Location teleportLoc = new Location(playerLoc.getWorld(), newX, playerLoc.getY(), newZ, 
-            playerLoc.getYaw(), playerLoc.getPitch());
-        player.getWorld().playEffect(playerLoc, Effect.ENDER_SIGNAL, 15);
-        player.getWorld().playEffect(teleportLoc, Effect.ENDER_SIGNAL, 15);
         
-        // Play sound for nearby players within 10 blocks
+        // Create and apply knockback velocity
+        Vector knockback = new Vector(knockbackX, 0.4, knockbackZ); // Slight upward velocity for better knockback feel
+        player.setVelocity(knockback);
+        
+        // Play effects at player location
+        player.getWorld().playEffect(playerLoc, Effect.ENDER_SIGNAL, 15);
+        
+        // Play sound for nearby players
         for(Player nearbyPlayer : Bukkit.getOnlinePlayers()) {
             if(nearbyPlayer.getWorld() != playerLoc.getWorld()) continue;
             if(nearbyPlayer.getLocation().distance(playerLoc) <= 10) {
@@ -262,19 +246,14 @@ public class GlassManager implements Listener, ManagerEnabler {
             }
         }
 
-        // Debug message
         if(Config.GLASS_DEBUG) {
             player.sendMessage("§c[Glass Debug] You were " + String.format("%.2f", minDistance) + " blocks from the nearest boundary!");
-            player.sendMessage("§c[Glass Debug] From: " + String.format("%.2f, %.2f, %.2f", 
-                playerLoc.getX(), playerLoc.getY(), playerLoc.getZ()));
-            player.sendMessage("§c[Glass Debug] To: " + String.format("%.2f, %.2f, %.2f", 
-                teleportLoc.getX(), teleportLoc.getY(), teleportLoc.getZ()));
+            player.sendMessage("§c[Glass Debug] Knockback applied: X=" + String.format("%.2f", knockbackX) + 
+                ", Z=" + String.format("%.2f", knockbackZ));
         }
-        
-        player.teleport(teleportLoc);
     }
     
-    private void checkAndTeleportFromGlass(Player player) {
+    private void checkAndKnockbackFromGlass(Player player) {
         GlassType type = this.getGlassType(player, null);
         if(type == null) return;
         
@@ -297,7 +276,6 @@ public class GlassManager implements Listener, ManagerEnabler {
                 || (Config.PVP_PROTECTION_CAN_ENTER_OWN_CLAIM && claim.getOwner() == playerFaction));
         }
         
-        // Debug: log checking
         if(Config.GLASS_DEBUG && !claims.isEmpty()) {
             player.sendMessage("§7[Glass Debug] Checking " + claims.size() + " claims for collision...");
         }
@@ -309,7 +287,7 @@ public class GlassManager implements Listener, ManagerEnabler {
                     player.sendMessage("§e[Glass Debug] Collision detected with claim: " + 
                         claim.getOwner().getDisplayName(player));
                 }
-                this.teleportPlayerOutsideGlass(player, claim);
+                this.knockbackPlayerFromGlass(player, claim);
                 break; // Only teleport once per tick
             }
         }
@@ -356,8 +334,8 @@ public class GlassManager implements Listener, ManagerEnabler {
                         this.lastPlayerLocations.put(player.getUniqueId(), player.getLocation());
                     }
                     
-                    // Check for glass wall collision and teleport if needed
-                    checkAndTeleportFromGlass(player);
+                    // Check for glass wall collision and knockback if needed
+                    checkAndKnockbackFromGlass(player);
                 }
             } catch(Throwable t) {
                 t.printStackTrace();
