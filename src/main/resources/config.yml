@@ -1107,6 +1107,7 @@ LFF_COMMAND:
 
 LIST_COMMAND:
   NO_STAFF_ONLINE: "No staff"
+  NO_PLAYERS_ONLINE: "No players"
   # Should we show vanished staff on /list?
   SHOW_VANISHED_STAFF: false
 
@@ -1143,6 +1144,10 @@ MOB_STACK:
   - "COW"
   # What should be maximum stack size?
   MAX_AMOUNT: 200
+
+GLASS:
+  # Enable debug messages for glass wall collision detection
+  DEBUG: false
 
 PVP_PROTECTION:
   # Pvp protection duration in seconds

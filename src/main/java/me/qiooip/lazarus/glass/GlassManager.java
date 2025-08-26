@@ -8,9 +8,11 @@ import me.qiooip.lazarus.factions.claim.ClaimManager;
 import me.qiooip.lazarus.factions.type.PlayerFaction;
 import me.qiooip.lazarus.factions.type.RoadFaction;
 import me.qiooip.lazarus.timer.TimerManager;
-import me.qiooip.lazarus.utils.Tasks;
 import me.qiooip.lazarus.utils.ManagerEnabler;
+import me.qiooip.lazarus.utils.Tasks;
 import org.bukkit.Bukkit;
+import org.bukkit.Effect;
+import org.bukkit.Sound;
 import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -92,8 +94,6 @@ public class GlassManager implements Listener, ManagerEnabler {
         int z = location.getBlockZ() >> 4;
 
         if(!location.getWorld().isChunkLoaded(x, z)) return;
-
-        UUID uuid = player.getUniqueId();
 
         location.getWorld().getChunkAtAsync(x, z, (chunk) -> {
             Material material = location.getBlock().getType();
@@ -187,6 +187,133 @@ public class GlassManager implements Listener, ManagerEnabler {
             }
         }));
     }
+    
+    private boolean isPlayerInsideGlassWall(Player player, Claim claim) {
+        Location playerLoc = player.getLocation();
+        
+        double px = playerLoc.getX();
+        double pz = playerLoc.getZ();
+        
+        // Check if player is inside the claim
+        boolean insideClaim = px >= claim.getMinX() && px <= claim.getMaxX() && 
+                             pz >= claim.getMinZ() && pz <= claim.getMaxZ();
+        
+        if(!insideClaim) {
+            return false; // Player is outside, no need to teleport
+        }
+        
+        // Calculate distance from boundaries (when inside the claim)
+        double distanceFromMinX = px - claim.getMinX();  // Distance from west boundary
+        double distanceFromMaxX = claim.getMaxX() - px;  // Distance from east boundary
+        double distanceFromMinZ = pz - claim.getMinZ();  // Distance from north boundary
+        double distanceFromMaxZ = claim.getMaxZ() - pz;  // Distance from south boundary
+        
+        // Check if player is within 0.8 blocks of any boundary (inside the claim)
+        boolean nearMinX = distanceFromMinX < 0.8 && pz >= claim.getMinZ() && pz <= claim.getMaxZ();
+        boolean nearMaxX = distanceFromMaxX < 0.8 && pz >= claim.getMinZ() && pz <= claim.getMaxZ();
+        boolean nearMinZ = distanceFromMinZ < 0.8 && px >= claim.getMinX() && px <= claim.getMaxX();
+        boolean nearMaxZ = distanceFromMaxZ < 0.8 && px >= claim.getMinX() && px <= claim.getMaxX();
+        
+        return nearMinX || nearMaxX || nearMinZ || nearMaxZ;
+    }
+    
+    private void teleportPlayerOutsideGlass(Player player, Claim claim) {
+        Location playerLoc = player.getLocation();
+        double px = playerLoc.getX();
+        double pz = playerLoc.getZ();
+        
+        // Calculate the safe teleport location outside the glass
+        double newX = playerLoc.getX();
+        double newZ = playerLoc.getZ();
+        
+        // Calculate distances from boundaries to determine which one player is closest to
+        double distanceFromMinX = px - claim.getMinX();
+        double distanceFromMaxX = claim.getMaxX() - px;
+        double distanceFromMinZ = pz - claim.getMinZ();
+        double distanceFromMaxZ = claim.getMaxZ() - pz;
+        
+        // Find the closest boundary and teleport outside it
+        double minDistance = Math.min(Math.min(distanceFromMinX, distanceFromMaxX), 
+                                     Math.min(distanceFromMinZ, distanceFromMaxZ));
+        
+        // Teleport based on which boundary the player is closest to
+        if(distanceFromMinX == minDistance) {
+            newX = claim.getMinX() - 3.5; // Teleport 3.5 blocks outside west boundary
+        } else if(distanceFromMaxX == minDistance) {
+            newX = claim.getMaxX() + 3.5; // Teleport 3.5 blocks outside east boundary
+        }
+        
+        if(distanceFromMinZ == minDistance) {
+            newZ = claim.getMinZ() - 3.5; // Teleport 3.5 blocks outside north boundary
+        } else if(distanceFromMaxZ == minDistance) {
+            newZ = claim.getMaxZ() + 3.5; // Teleport 3.5 blocks outside south boundary
+        }
+
+        Location teleportLoc = new Location(playerLoc.getWorld(), newX, playerLoc.getY(), newZ, 
+            playerLoc.getYaw(), playerLoc.getPitch());
+        player.getWorld().playEffect(playerLoc, Effect.ENDER_SIGNAL, 15);
+        player.getWorld().playEffect(teleportLoc, Effect.ENDER_SIGNAL, 15);
+        
+        // Play sound for nearby players within 10 blocks
+        for(Player nearbyPlayer : Bukkit.getOnlinePlayers()) {
+            if(nearbyPlayer.getWorld() != playerLoc.getWorld()) continue;
+            if(nearbyPlayer.getLocation().distance(playerLoc) <= 10) {
+                nearbyPlayer.playSound(nearbyPlayer.getLocation(), Sound.ENDERMAN_TELEPORT, 0.8f, 1.0f);
+            }
+        }
+
+        // Debug message
+        if(Config.GLASS_DEBUG) {
+            player.sendMessage("§c[Glass Debug] You were " + String.format("%.2f", minDistance) + " blocks from the nearest boundary!");
+            player.sendMessage("§c[Glass Debug] From: " + String.format("%.2f, %.2f, %.2f", 
+                playerLoc.getX(), playerLoc.getY(), playerLoc.getZ()));
+            player.sendMessage("§c[Glass Debug] To: " + String.format("%.2f, %.2f, %.2f", 
+                teleportLoc.getX(), teleportLoc.getY(), teleportLoc.getZ()));
+        }
+        
+        player.teleport(teleportLoc);
+    }
+    
+    private void checkAndTeleportFromGlass(Player player) {
+        GlassType type = this.getGlassType(player, null);
+        if(type == null) return;
+        
+        Location playerLoc = player.getLocation();
+        
+        // Get nearby claims
+        Set<Claim> claims = ClaimManager.getInstance().getClaimsInSelection(playerLoc.getWorld(),
+            playerLoc.getBlockX() - 1, playerLoc.getBlockX() + 1,
+            playerLoc.getBlockZ() - 1, playerLoc.getBlockZ() + 1);
+        
+        if(claims.isEmpty()) return;
+        
+        // Filter claims based on glass type
+        if(type == GlassType.SPAWN_WALL) {
+            claims.removeIf(claim -> !claim.getOwner().isSafezone());
+        } else {
+            PlayerFaction playerFaction = FactionsManager.getInstance().getPlayerFaction(player);
+            
+            claims.removeIf(claim -> claim.getOwner() instanceof RoadFaction || claim.getOwner().isSafezone()
+                || (Config.PVP_PROTECTION_CAN_ENTER_OWN_CLAIM && claim.getOwner() == playerFaction));
+        }
+        
+        // Debug: log checking
+        if(Config.GLASS_DEBUG && !claims.isEmpty()) {
+            player.sendMessage("§7[Glass Debug] Checking " + claims.size() + " claims for collision...");
+        }
+        
+        // Check each claim and teleport if needed
+        for(Claim claim : claims) {
+            if(this.isPlayerInsideGlassWall(player, claim)) {
+                if(Config.GLASS_DEBUG) {
+                    player.sendMessage("§e[Glass Debug] Collision detected with claim: " + 
+                        claim.getOwner().getDisplayName(player));
+                }
+                this.teleportPlayerOutsideGlass(player, claim);
+                break; // Only teleport once per tick
+            }
+        }
+    }
 
     @EventHandler
     public void onPlayerQuit(PlayerQuitEvent event) {
@@ -228,6 +355,9 @@ public class GlassManager implements Listener, ManagerEnabler {
                         handlePlayerMove(player, lastLocation, player.getLocation());
                         this.lastPlayerLocations.put(player.getUniqueId(), player.getLocation());
                     }
+                    
+                    // Check for glass wall collision and teleport if needed
+                    checkAndTeleportFromGlass(player);
                 }
             } catch(Throwable t) {
                 t.printStackTrace();

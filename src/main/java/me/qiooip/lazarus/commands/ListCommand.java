@@ -20,15 +20,20 @@ public class ListCommand extends BaseCommand {
     @Override
     public void execute(CommandSender sender, String[] args) {
         List<String> staff = new ArrayList<>();
+        List<String> players = new ArrayList<>();
         VanishManager manager = Lazarus.getInstance().getVanishManager();
 
-        Bukkit.getOnlinePlayers().stream().filter(online -> online.hasPermission("lazarus.staff")).forEach(online -> {
-            if(!Config.LIST_SHOW_VANISHED_STAFF && manager.isVanished(online)) return;
-
-            staff.add(online.getName());
+        Bukkit.getOnlinePlayers().forEach(online -> {
+            if (!online.hasPermission("lazarus.staff")) {
+                players.add(online.getName());
+            } else if (!manager.isVanished(online) || sender.hasPermission("lazarus.vanish")) {
+                staff.add(online.getName());
+            }
         });
 
         String onlineStaff = staff.isEmpty() ? Config.LIST_NO_STAFF_ONLINE : String.join(", ", staff);
+        String playersList = players.isEmpty() ? Config.LIST_NO_PLAYERS_ONLINE : String.join(", ", players);
+
         int onlineSize = Bukkit.getOnlinePlayers().size();
 
         int online = Config.LIST_SHOW_VANISHED_STAFF
@@ -38,7 +43,8 @@ public class ListCommand extends BaseCommand {
             sender.sendMessage(message
                 .replace("<max>", String.valueOf(Bukkit.getMaxPlayers()))
                 .replace("<online>", String.valueOf(online))
-                .replace("<staffonline>", onlineStaff))
+                .replace("<staffonline>", onlineStaff)
+                .replace("<players>", playersList))
         );
     }
 }

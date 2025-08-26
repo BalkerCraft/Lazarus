@@ -2030,10 +2030,11 @@ LFF_COMMAND:
 
 LIST_COMMAND:
   - "&7&m                                                                                "
-  - " &eThere is currently &c&l<online>&e/&c&l<max> &eplayers online."
+  - "&eThere is currently &c&l<online>&e/&c&l<max> &eplayers online."
+  - " &8➥ &7<players>"
   - ""
-  - " &eStaff Online:"
-  - " &f- &7<staffonline>"
+  - "&eStaff Online:"
+  - " &8➥ &7<staffonline>"
   - "&7&m                                                                                "
 
 LIVES_COMMAND:

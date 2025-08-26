@@ -313,6 +313,7 @@ public class Config {
     public static int LFF_COMMAND_COOLDOWN;
 
     public static String LIST_NO_STAFF_ONLINE;
+    public static String LIST_NO_PLAYERS_ONLINE;
     public static boolean LIST_SHOW_VANISHED_STAFF;
 
     public static int LOGOUT_DELAY;
@@ -333,6 +334,8 @@ public class Config {
     public static int PVP_PROTECTION_DURATION;
     public static boolean PVP_PROTECTION_DISABLE_END_ENTRY;
     public static boolean PVP_PROTECTION_CAN_ENTER_OWN_CLAIM;
+    
+    public static boolean GLASS_DEBUG;
 
     public static int RENAME_MAX_LENGTH;
     public static List<String> RENAME_BLACKLISTED_WORDS;
@@ -847,6 +850,7 @@ public class Config {
         LFF_COMMAND_COOLDOWN = config.getInt("LFF_COMMAND.COOLDOWN");
 
         LIST_NO_STAFF_ONLINE = config.getString("LIST_COMMAND.NO_STAFF_ONLINE");
+        LIST_NO_PLAYERS_ONLINE = config.getString("LIST_COMMAND.NO_PLAYERS_ONLINE");
         LIST_SHOW_VANISHED_STAFF = config.getBoolean("LIST_COMMAND.SHOW_VANISHED_STAFF");
 
         LOGOUT_DELAY = config.getInt("LOGOUT_DELAY");
@@ -868,6 +872,8 @@ public class Config {
         PVP_PROTECTION_DURATION = config.getInt("PVP_PROTECTION.DURATION");
         PVP_PROTECTION_DISABLE_END_ENTRY = config.getBoolean("PVP_PROTECTION.DISABLE_END_ENTRY");
         PVP_PROTECTION_CAN_ENTER_OWN_CLAIM = config.getBoolean("PVP_PROTECTION.CAN_ENTER_OWN_CLAIM");
+        
+        GLASS_DEBUG = config.getBoolean("GLASS.DEBUG", false);
 
         RENAME_MAX_LENGTH = config.getInt("RENAME_COMMAND.MAX_LENGTH");
         RENAME_BLACKLISTED_WORDS = config.getStringList("RENAME_COMMAND.BLACKLISTED_WORDS")
